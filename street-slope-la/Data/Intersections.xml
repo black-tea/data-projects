@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><metadata>
+<idinfo>
+<accconst>None</accconst>
+<useconst>None</useconst>
+</idinfo>
+<eainfo>
+<detailed>
+<enttyp>
+<enttypl>CLAPP.intersection</enttypl>
+<enttypd>Intersection points feature class.</enttypd>
+<enttypds>BOE Mapping</enttypds>
+</enttyp>
+<attr>
+<attrlabl>Y</attrlabl>
+<attrdef>This field captures the georeferenced location along the vertical plane of the point in the data layer that is projected in Stateplane Coordinate System NAD83. For example, Y = in the record of a point, while the X = .</attrdef>
+<attrdefs>BOE Mapping.</attrdefs>
+</attr>
+<attr>
+<attrlabl>CL_NODE_ID</attrlabl>
+<attrdef>This field value is entered as new point features are added to the edit layer, during Street Centerline application editing process. The values are assigned automatically and consecutively by the ArcGIS software first to the street centerline spatial data layer, then the intersections point spatial data layer, and then the intersections point attribute data during the creation of new intersection points. Each intersection identification number is a unique value. The value relates to the street centerline layer attributes, to the INT_ID_FROM and INT_ID_TO fields. One or more street centerline features intersect the intersection point feature. For example, if a street centerline segment ends at a cul-de-sac, then the point feature intersects only one street centerline segment.</attrdef>
+<attrdefs>BOE Mapping</attrdefs>
+</attr>
+<attr>
+<attrlabl>X</attrlabl>
+<attrdef>This field captures the georeferenced location along the horizontal plane of the point in the data layer that is projected in Stateplane Coordinate System NAD83. For example, X = in the record of a point, while the Y = .</attrdef>
+<attrdefs>BOE Mapping.</attrdefs>
+</attr>
+<attr>
+<attrlabl>ASSETID</attrlabl>
+<attrdef>User-defined feature autonumber.</attrdef>
+<attrdefs>BOE Mapping</attrdefs>
+<attrdomv>
+          <udom>Sequential unique whole numbers that are automatically generated.</udom>
+        </attrdomv>
+</attr>
+<attr>
+<attrlabl>USER_ID</attrlabl>
+<attrdef>The name of the user carrying out the edits.</attrdef>
+<attrdefs>BOE Mapping</attrdefs>
+<attrdomv>
+          <udom>Information identifying the user editing feature and attribute data. Value is automatically populated when user enters their login.</udom>
+        </attrdomv>
+</attr>
+<attr>
+<attrlabl>SHAPE</attrlabl>
+<attrdef>Feature geometry.</attrdef>
+<attrdefs>ESRI</attrdefs>
+<attrdomv>
+          <udom>Coordinates defining the features.</udom>
+        </attrdomv>
+</attr>
+<attr>
+<attrlabl>LST_MODF_DT</attrlabl>
+<attrdef>Last modification date of the polygon feature.</attrdef>
+<attrdefs>BOE Mapping</attrdefs>
+<attrdomv>
+          <udom>The date that the spatial feature data or attribute data was updated. Value is automatically populated after user saves their edits.</udom>
+        </attrdomv>
+</attr>
+<attr>
+<attrlabl>LAT</attrlabl>
+<attrdef>This field captures the Latitude in deciaml degrees units of the point in the data layer that is projected in Geographic Coordinate System GCS_North_American_1983.</attrdef>
+<attrdefs>BOE Mapping.</attrdefs>
+</attr>
+<attr>
+<attrlabl>OBJECTID</attrlabl>
+<attrdef>Internal feature number.</attrdef>
+<attrdefs>ESRI</attrdefs>
+<attrdomv>
+          <udom>Sequential unique whole numbers that are automatically generated.</udom>
+        </attrdomv>
+</attr>
+<attr>
+<attrlabl>CRTN_DT</attrlabl>
+<attrdef>Creation date of the polygon feature.</attrdef>
+<attrdefs>BOE Mapping</attrdefs>
+<attrdomv>
+          <udom>The date that the spatial feature data was created. Value is automatically populated after user digitizes new features and saves their edits.</udom>
+        </attrdomv>
+</attr>
+<attr>
+<attrlabl>TYPE</attrlabl>
+<attrdef>This field captures a value for intersection point features that are psuedo nodes or outside of the City. A pseudo node, or point, does not signify a true intersection of two or more different street centerline features. The point is there to split the line feature into two segments. A pseudo node may be needed if for example, the Bureau of Street Services (BSS) has assigned different SECT_ID values for those segments.</attrdef>
+<attrdefs>BOE Mapping.</attrdefs>
+<attrdomv>
+          <edom>
+            <edomv>S</edomv>
+            <edomvd>Feature is a pseudo node and not a true intersection.</edomvd>
+          </edom>
+          <edom>
+            <edomv>null</edomv>
+            <edomvd>Feature is an intersection point.</edomvd>
+          </edom>
+          <edom>
+            <edomv>O</edomv>
+            <edomvd>Intersection point is outside of the City of LA boundary.</edomvd>
+          </edom>
+        </attrdomv>
+</attr>
+<attr>
+<attrlabl>LON</attrlabl>
+<attrdef>This field captures the Longitude in deciaml degrees units of the point in the data layer that is projected in Geographic Coordinate System GCS_North_American_1983.</attrdef>
+<attrdefs>BOE Mapping.</attrdefs>
+</attr>
+</detailed>
+</eainfo>
+<metainfo>
+<metstdn>FGDC Content Standard for Digital Geospatial Metadata</metstdn>
+<metstdv>FGDC-STD-001-1998</metstdv>
+<mettc>local time</mettc>
+</metainfo>
+</metadata>
