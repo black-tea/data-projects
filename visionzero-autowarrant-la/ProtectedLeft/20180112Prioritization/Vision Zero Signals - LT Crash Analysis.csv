@@ -1,0 +1,59 @@
+Int,Primary Street,X-Street,Phasing Type,Phasing Direction(s),Traffic Control Report (TCR)
+106686,FIGUEROA ST,MANCHESTER AV,Protected-Only,ALL DIR,TCR
+134976,VERMONT AV,WASHINGTON BL,Hybrid Protected-Only-Protected/Permissive,ALL DIR,TCR
+121116,PICO BL,WESTERN AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,ALL DIR,TCR
+96407,ADAMS BL,LA BREA AV,Protected-Only and Protected/Permissive,ALL DIR,TCR
+117162,MARTIN LUTHER KING JR BL,NORMANDIE AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,ALL DIR,TCR
+131232,MARTIN LUTHER KING JR BL,WESTERN AV,Hybrid Protected-Only-Protected/Permissive,E/B & W/B,TCR
+117059,76TH ST,WESTERN AV,Hybrid Protected-Only-Protected/Permissive,N/B & S/B,TCR
+113863,HOOVER ST,VERNON AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,ALL DIR,TCR
+145253,FLORENCE AV,NORMANDIE AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,ALL DIR,TCR
+96370,LA CIENEGA BL,PICO BL,Protected-Only,N/B & E/B,TCR
+145695,CRENSHAW BL,VENICE BL,Hybrid Protected-Only-Protected/Permissive,"S/B, E/B, & W/B",TCR
+109525,SATICOY ST,TOPANGA CANYON BL,Hybrid Protected-Only-Protected/Permissive,E/B & W/B,TCR
+110084,BROADWAY,FLORENCE AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,ALL DIR,TCR
+96010,62ND ST,WESTERN AV,Protected-Only,ALL DIR,TCR
+121075,ADAMS BL,VERMONT AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,ALL DIR,TCR
+124517,PICO BL,VERMONT AV,Hybrid Protected-Only-Protected/Permissive,ALL DIR,TCR
+128099,RAMPART BL,WILSHIRE BL,Hybrid Protected-Only-Protected/Permissive,E/B,TCR
+128090,NORMANDIE AV,WASHINGTON BL,Hybrid Protected-Only-Protected/Permissive and Protected-Only,N/B & E/B,TCR
+117487,ADAMS BL,CRENSHAW BL,Protected-Only,N/B & S/B,TCR
+108673,RINALDI ST,SEPULVEDA BL,Protected-Only,E/B,TCR
+110127,MANCHESTER AV,WESTERN AV,Protected-Only,"N/B, S/B, & W/B",TCR
+127689,FLORENCE AV,WESTERN AV,Protected-Only,ALL DIR,TCR
+113583,FIGUEROA ST,FLORENCE AV,Protected-Only,N/B,TCR
+103353,FIGUEROA ST,VERNON AV,Hybrid Protected-Only-Protected/Permissive,ALL DIR,TCR
+106837,CRENSHAW BL,JEFFERSON BL,Hybrid Protected-Only-Protected/Permissive and Protected-Only,"N/B, S/B, & W/B",TCR
+121037,WASHINGTON BL,WESTERN AV,Hybrid Protected-Only-Protected/Permissive,S/B & E/B,TCR
+138221,CENTURY BL,FIGUEROA ST,Protected-Only,N/B & S/B,TCR
+113970,ADAMS BL,NORMANDIE AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,N/B & S/B,TCR
+103456,LA BREA AV,WASHINGTON BL,Protected-Only,W/B,TCR
+106854,VERMONT AV,VERNON AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,N/B & S/B,TCR
+117523,CRENSHAW BL,PICO BL,Hybrid Protected-Only-Protected/Permissive,N/B & S/B,TCR
+117554,ALVARADO ST,PICO BL,Hybrid Protected-Only-Protected/Permissive,E/B,TCR
+106709,JEFFERSON BL,WESTERN AV,Hybrid Protected-Only-Protected/Permissive,N/B & S/B,TCR
+117361,NORMANDIE AV,VERNON AV,Hybrid Protected-Only-Protected/Permissive,ALL DIR,TCR
+124366,JEFFERSON BL,NORMANDIE AV,Hybrid Protected-Only-Protected/Permissive,ALL DIR,TCR
+120663,FIGUEROA ST,GAGE AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,ALL DIR,TCR
+134809,BROADWAY,VERNON AV,Hybrid Protected-Only-Protected/Permissive,N/B & E/B,TCR
+96415,PICO BL,ROBERTSON BL,Hybrid Protected-Only-Protected/Permissive,E/B & W/B,TCR
+106643,BROADWAY,GAGE AV,Hybrid Protected-Only-Protected/Permissive,ALL DIR,TCR
+111238,DALY ST,NORTH BROADWAY ,Hybrid Protected-Only-Protected/Permissive,E/B,TCR
+96071,GAGE AV,HOOVER AV,Hybrid Protected-Only-Protected/Permissive,E/B & W/B,TCR
+99928,ADAMS BL,HAUSER BL,Hybrid Protected-Only-Protected/Permissive,E/B & W/B,TCR
+105405,DEVONSHIRE ST,SEPULVEDA BL,Protected/Permissive,W/B,TCR
+105832,FLETCHER DR,LA CLEDE AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,N/B & S/B,TCR
+131554,HOBART BL,PICO BL,Hybrid Protected-Only-Protected/Permissive,E/B & W/B,TCR
+135612,6TH ST,RAMPART BL,Hybrid Protected-Only-Protected/Permissive,E/B,TCR
+145715,UNION AV,WILSHIRE BL,Hybrid Protected-Only-Protected/Permissive,ALL DIR,TCR
+100373,FLETCHER DR,LARGA AV,Hybrid Protected-Only-Protected/Permissive,N/B & S/B,TCR
+145214,54TH ST,WESTERN AV,Hybrid Protected-Only-Protected/Permissive,N/B & S/B,TCR
+117496,PICO BL,WESTMORELAND AV,Hybrid Protected-Only-Protected/Permissive,E/B & W/B,TCR
+146378,AVENUE 19,NORTH BROADWAY ,Hybrid Protected-Only-Protected/Permissive,E/B,TCR
+110458,NORMANDIE AV,PICO BL,Hybrid Protected-Only-Protected/Permissive,E/B & W/B,TCR
+114671,AVENUE 20,NORTH BROADWAY ,Hybrid Protected-Only-Protected/Permissive,E/B,TCR
+120226,108TH ST,FIGUEROA ST,Hybrid Protected-Only-Protected/Permissive,N/B & S/B,TCR
+120695,BUDLONG AV,MANCHESTER AV,Hybrid Protected-Only-Protected/Permissive,E/B & W/B,TCR
+110366,42ND ST,BROADWAY,Protected-Only,S/B,TCR
+113952,CATALINA ST,PICO BL,Hybrid Protected-Only-Protected/Permissive,E/B & W/B,TCR
+,PICO BL,WESTMORELAND AV,Hybrid Protected-Only-Protected/Permissive and Protected-Only,ALL DIR,TCR

@@ -1,0 +1,183 @@
+---
+title: "Prioritizing Infrastructure Installation"
+output: md_document
+always_allow_html: yes
+---
+## Project Background
+We had some new protected left signal phasing that was planned for installtion, and I was asked if I could put together a prioritized list based on the latest 5 year collision history (2012-2016), essentially a simpler version of the script calculation that we did [here](https://black-tea.github.io/projects/2017/01/10/Data-Driven-Funding-Applications.html).
+
+It also helped that by this time, we also had each collision already assigned to intersection IDs that we developed in the effort to revamp our collision database management system with [RoadSafe GIS](https://roadsafegis.com/). These intersection IDs are a modified version of the street centerline intersection file that can be found on the [GeoHub](http://geohub.lacity.org/datasets/0372aa1fb42a4e29adb9caadcfb210bb_9). Before starting this project, I went ahead and downloaded the the collision data and the intersection data (not included in the project GitHub because these data are still going through a QA/QC process). 
+
+### Project 
+
+```{r}
+# load libraries
+library(dplyr)
+
+# import data
+bss <- st_read("Data/Street_Pavement_Condition.shp",quiet=TRUE)
+boe <- st_read("C:/Users/Tim/Documents/data/street-slope-la/Streets_Centerline/Streets_Centerline.shp", quiet=TRUE)
+int <- st_read("Data/Intersections.shp", quiet=TRUE)
+```
+### Explore the Data
+__BOE Centerline__
+```{r}
+glimpse(boe)
+```
+__BSS Centerline / Street Pavement Condition__
+```{r}
+glimpse(bss)
+```
+### Data Prep
+For the centerline files, both have quite a bit of unneeded information that we can trim out when we do the merge. Since the BSS version of the centerline file contains the street width and the BOE version contains the street classification, we need to merge them (and trim out any other unneeded columns) into one street centerline file. The BSS centerline file is slightly more restrictive -- only containing streets that are maintained by the City of Los Angeles -- so it will have fewer streets compared to the BOE one. I'll merge the BOE file with that one.
+
+Note: Once I started bringing in the raster data, I began getting an error while runing the `select()` function. I found out from [this blog post](https://remi-daigle.github.io/2017-CHONe-Data/dataviz.nb.html#) that the error is a result of several packages having a `select()` function (in this case the function from the `raster` package is superceding the `dplyr` one). The solution is simple -- make sure to explicitly call out which package you are using with following syntax: `package::function()`
+```{r}
+# trim bss centerline
+bss <- bss %>%
+  dplyr::select(SECT_ID, PRIME, FROM_, TO_, SURF1, ZLENGTH, ZWIDTH, geometry) %>%
+  rename(sect.id = 'SECT_ID',
+         street = 'PRIME',
+         from = 'FROM_',
+         to = 'TO_',
+         surface = 'SURF1',
+         length.ft = 'ZLENGTH',
+         width.ft = 'ZWIDTH',
+         geom = 'geometry') %>%
+  mutate(sect.id = as.character(sect.id)) %>%
+  st_set_geometry(NULL)
+
+
+# trim boe centerline
+boe <- boe %>%
+  dplyr::select(ASSETID,
+                INT_ID_FRO,
+                INT_ID_TO,
+                SECT_ID,
+                STNAME,
+                OLD_STREET,
+                Street_Des) %>%
+  rename(asset.id = 'ASSETID',
+         fromint.id = 'INT_ID_FRO',
+         toint.id = 'INT_ID_TO',
+         sect.id = 'SECT_ID',
+         street = 'STNAME',
+         old.desig = 'OLD_STREET',
+         new.desig = 'Street_Des') %>%
+  mutate(sect.id = as.character(sect.id))
+```
+For the intersection layer, the I'm just going to trim away unneeded columns. First, a glimpse:
+```{r}
+glimpse(int)
+```
+Now I'll trim away the unneeded columns:
+```{r}
+int <- int %>%
+  dplyr::select(ASSETID, CL_NODE_ID, FROM_ST, TO_ST, X, Y, LAT, LON) %>%
+  rename(asset.id = 'ASSETID',
+         clnode.id = 'CL_NODE_ID',
+         from = 'FROM_ST',
+         to = 'TO_ST',
+         lat = 'LAT',
+         lon = 'LON')
+```
+### Load Raster Layers
+In order to calculate the slope of each street segment, I first need to calculate the elevation at each of these street segment endpoints. In order to get the elevation at each of the endpoints (intersections), I am going to extract this elevation data from the raster elevation image that I pulled from the National Elevation Dataset.
+```{r}
+library(raster, quietly = TRUE, warn.conflicts = FALSE)
+
+# import elevation data & merge into one raster layer
+la_n <- raster("C:/Users/Tim/Documents/data/street-slope-la/n35w119/grdn35w119_13")
+la_s <- raster("C:/Users/Tim/Documents/data/street-slope-la/n34w119/grdn34w119_13")
+la_elev <- merge(la_n, la_s)
+
+# preview the merged raster
+plot(la_elev)
+```
+
+### Extract Elevation Data
+Note: the `sf` package was released on CRAN on January 2017, while the latest release of the `raster` package was back in June 2016. Since there is no interoperability between these two packages, I add the extra step of first converting the `sf` object into an `sp` object before working with the raster image. According to the documentation, the elevation values are in meters.
+```{r}
+# cast as sp object, extract elevation, convert back to sf object
+int_sp <- as(int, "Spatial")
+int_elev <- extract(la_elev,
+                    int_sp,
+                    method='simple')
+int_elev <- cbind(int, int_elev)
+int_elev <- int_elev %>%
+  dplyr::select(clnode.id,
+                lat,
+                lon,
+                int_elev) %>%
+  st_set_geometry(NULL)
+
+glimpse(int_elev)
+```
+### Street Slope
+Now that I have the elevation at each of the intersection points, I can calculate the slope of the each street segment by joining the intersection to the (updated) street centerline file. I need to do the join twice -- once for each side of the street. Before that though, I am going to calcualte the length of the BOE segment, which also requires projecting it. During this process, I am also going to filter out any of the private / closed / unknown roads. 
+```{r}
+streets <- boe %>% 
+  mutate(len = st_length(boe)) %>% # get length
+  inner_join(int_elev, by=c("fromint.id" = "clnode.id")) %>%
+  rename(from.elev = "int_elev") %>%
+  inner_join(int_elev, by=c("toint.id" = "clnode.id")) %>%
+  rename(to.elev = "int_elev",
+         from.lat = "lat.x",
+         from.lon = "lon.x",
+         to.lat = "lat.y",
+         to.lon = "lon.y") %>%
+  mutate(slope = (abs((from.elev - to.elev))/(as.numeric(len)))*100) %>% # Slope
+  filter(!sect.id %in% c('closed', 'private', 'none', NA, 'outside')) %>%
+  filter(!old.desig %in% c('Unknown Type or Closed Street',NA)) %>%
+  filter(as.numeric(len) > 50)
+```
+At this point I'm also going to attach the street widths from the BSS file. Joining by Section ID (because it is a 1:many join) will result in duplicate rows if there are multiple matches. I could do a semi_join, but this really only filters out the rows of x, without bringing over the columns in y. Instead, I'll do a left-join and then follow it with a filter for unique values (over the AssetID column).
+```{r}
+# semi join boe <- bss
+streets <- streets %>%
+  left_join(bss, by='sect.id') %>% # join to bss
+  dplyr::select(-street.y, -from, -to, -surface, -length.ft) %>% # only keep width
+  rename(street = 'street.x') %>%
+  distinct(asset.id, .keep_all=TRUE) #unique assetIDs, but keep all cols
+
+```
+#### Steepest streets in LA?
+Let's take a look at the streets in LA with the highest grade. For this exercise, I wanted to look at segments that were at least 150m long. 
+```{r}
+# Sort by slope
+streets %>%
+  mutate(From = paste0("(", from.lat, ",", from.lon,")"),
+         To = paste0("(", to.lat, ",", to.lon, ")")) %>%
+  dplyr::select(street, slope, len, From, To) %>%
+  rename(Length = 'len',
+         Slope = 'slope') %>%
+  filter(as.numeric(Length) > 150) %>%
+  arrange(desc(Slope)) %>%
+  head() %>%
+  st_set_geometry(NULL) 
+
+```
+Top 5 Winners listed below:
+
+* [Mateo: 37.78%](https://www.google.com/maps/@34.0954777,-118.221006,3a,75y,44.18h,101.21t/data=!3m7!1e1!3m5!1sn_sy_XfzNUzOqzs9YFDZxg!2e0!6s%2F%2Fgeo1.ggpht.com%2Fcbk%3Fpanoid%3Dn_sy_XfzNUzOqzs9YFDZxg%26output%3Dthumbnail%26cb_client%3Dmaps_sv.tactile.gps%26thumb%3D2%26w%3D203%26h%3D100%26yaw%3D207.12363%26pitch%3D0%26thumbfov%3D100!7i13312!8i6656) This is actually not a true street! It has been permitted for development (which is why the BOE centerline contains the outline for the street), but it doesn't count for our purposes.
+1. [Escalon: 33.93%](https://www.google.com/maps/@34.1325797,-118.5042935,3a,75y,178.29h,99.4t/data=!3m6!1e1!3m4!1s18PdlRg0YhRcePEUH622hg!2e0!7i13312!8i6656) The winner is out in Encino, just above Mulholland Dr.
+2. [Quito: 30.83%](https://www.google.com/maps/@34.1061073,-118.4472086,3a,75y,286.08h,90.72t/data=!3m6!1e1!3m4!1s6ch20uP9ei7O2c5o_zHygg!2e0!7i13312!8i6656) This street exists, and is public, but too narrow for Google car to have gone up.
+3. [Oletha: 30.51%](https://www.google.com/maps/@34.1075177,-118.4470495,3a,75y,247.2h,90t/data=!3m6!1e1!3m4!1sPeN4OnVYwNUBDHfISr92Iw!2e0!7i13312!8i6656) This is just one street down from Quito in the same Beverly Glen neighborhood.
+4. [Avenida De Santa Ynez: 29.57%](https://www.google.com/maps/@34.0696285,-118.5592242,3a,75y,70.73h,90t/data=!3m7!1e1!3m5!1sB5Zlr2cNGJ4HxOlsMe5Ulg!2e0!6s%2F%2Fgeo3.ggpht.com%2Fcbk%3Fpanoid%3DB5Zlr2cNGJ4HxOlsMe5Ulg%26output%3Dthumbnail%26cb_client%3Dmaps_sv.tactile.gps%26thumb%3D2%26w%3D203%26h%3D100%26yaw%3D67.11509%26pitch%3D0%26thumbfov%3D100!7i13312!8i6656) Also on the westside, out near Malibu.
+5. [Stowell: 27.80%](https://www.google.com/maps/@34.1114284,-118.4390223,3a,75y,198.02h,88.59t/data=!3m7!1e1!3m5!1srUcJyozhj7l2kZJCwasmDQ!2e0!6s%2F%2Fgeo3.ggpht.com%2Fcbk%3Fpanoid%3DrUcJyozhj7l2kZJCwasmDQ%26output%3Dthumbnail%26cb_client%3Dmaps_sv.tactile.gps%26thumb%3D2%26w%3D203%26h%3D100%26yaw%3D188.67407%26pitch%3D0%26thumbfov%3D100!7i13312!8i6656) Beverly Glen neighorhood.
+
+### The Map
+The map of the final data set! Unsurprisngly, most of the higher sloped streets are around the Hollywood Hills / Porter Ranch / Northeast LA regions. 
+```{r}
+# Create Color Palette
+pal <- colorNumeric(
+  palette = "YlGnBu",
+  domain = streets$slope
+)
+
+# Create the map
+plot(x = streets["slope"],
+     main = "Slope of Streets in LA",
+     col = pal(streets$slope)
+     )
+```
