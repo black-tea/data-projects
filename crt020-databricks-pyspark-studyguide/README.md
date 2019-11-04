@@ -1,19 +1,28 @@
-# CRT020: Apache Spark 2.4 w/ Python 3
+# Study Guide for Databricks CRT020 (Apache Spark 2.4 w/ Python 3)
 
-Each of the sections includes a reference for further reading in the Spark Documentation and/or _Spark: The Definitive Guide_, which I will refer to as "SDG" with the appropriate chapter/section. Although this study guide is specifically focused on the Python API, much of it applies to the other language APIs as well.
+Earlier this year, Databricks released a certification exam where developers can demonstrate their knowledge of the core components of the DataFrames API and Spark Architecture. In order to prepare for the exam, I recommend the following:
+* Read _Spark: The Definitive Guide_ (Chapters 1-9, 14-19)
+* Complete the following DataBricks Courses
+  * SP800: Getting Started with Apache Spark DataFrames
+  * SP820: ETL Part 1: Data Extraction
+  * SP821: ETL Part 2: Transformation and Loads
+* Know your way around the [Spark Python API Docs](https://spark.apache.org/docs/2.1.0/api/python/index.html), since you are allowed to reference the documentation during the exam.
 
-Because you are allowed to referencing the Spark API documentation, you should get familiar looking up 
+After completing the above, I put together the following study guide, based closely on the [CRT020 Exam Topics](https://academy.databricks.com/exam/crt020-python) to help me remember the key concepts and programming syntax. Each of the sections includes a reference for further reading in the Spark Documentation and/or _Spark: The Definitive Guide_, which I will refer to as "SDG" with the appropriate chapter/section. Although this study guide is specifically focused on the Python API, much of it applies to the other language APIs as well.
 
 ## Spark Architecture Components
 
 * Driver: Translates user/program input into work and orchestrates this work across executors. It maintains the state of the Spark application and interfaces with the cluster manager in order to get physical resources.
-* Executor: Executors carry out to work assigned by the driver and report the state of computation back to the driver node.
+* Worker node: Any node that can run application code on the cluster
+* Executor: Executors are processes that run on worker nodes to carry out to work assigned by the driver and report the state of computation back to the driver node.
 * Cluster Manager: Responsible for maintaining a cluster of machines to execute the Spark Application. Also has driver and worker node abstraction, but these are tied to physical machines instead of processes. Sparks supports three cluster managers: Spark's native cluster manager, Hadoop YARN, Apache Mesos.
 * Cores/Slots/Threads:
 * Partitions: Represent the physical distribution of data. Each partition is a collection of rows that sit on one physical machine and should have its own separate executor. 
 * Catalog: The catalog is a repository of all table and DataFrame information, used to resolve columns and tables in the analyzer.
+
+![](cluster-overview.png)
   
-_Source: SDG (Ch 15 - "Architecture of a Spark Application")_
+_Source: [Cluster Overview](https://spark.apache.org/docs/latest/cluster-overview.html), SDG (Ch 15 - "Architecture of a Spark Application")_
 
 ## Spark Execution
 
@@ -42,12 +51,12 @@ _**Spark Application: Structured API Execution**_
 _Source: SDG (Ch 15 - "Life Cycle of a Spark Application, Inside Spark")_
 
 _**Spark Application: Components**_  
-* Application: Each Spark application is made up of one or more _Spark Jobs_.
+* Application: A user program built on Spark, made up of one or more _Spark Jobs_.
 * Job: There will be one Spark Job per action, and each Job includes a set of stages, the number of which depends on how many shuffles need to take place.
 * Stages: Stages represent a set of tasks to compute the same operation across machines in the cluster. A new stage begins for each tranformation that requires a shuffle.
 * Tasks: Each task corresponds to a combination of a data partition and a set of transformations that run on a single executor.      
   
-_Source: SDG (Ch 15 - "A Spark Job", "Stage", "Tasks")_
+_Source: [Cluster Overview](https://spark.apache.org/docs/latest/cluster-overview.html), SDG (Ch 15 - "A Spark Job", "Stage", "Tasks")_
 
 ## Spark Concepts
 
@@ -57,7 +66,7 @@ _Source: SDG (Ch 15 - "A Spark Job", "Stage", "Tasks")_
 * Broadcasting: In cases where one of the DataFrames in a join is sufficiently small, a broadcast join duplicates that DataFrame on every machine, avoiding the cost of shuffling the bigger DataFrame.
 * Accumulators:  
 
-_Source: [Spark Docs](https://spark.apache.org/docs/latest/rdd-programming-guide.html#shared-variables), SDG (Ch 14 - "Broadcast Variables", "Accumulators")_
+_Source: [Spark Shared Variables](https://spark.apache.org/docs/latest/rdd-programming-guide.html#shared-variables), SDG (Ch 14 - "Broadcast Variables", "Accumulators")_
 
 ### DataFrame Operations: Transformations vs. Actions
 * Transformations: A transformation is a modification to an immuatable data structure. Transformations have _lazy evaluation_, meaning that they won't be evaluated until an _action_ is performed on the data. This lazy evaulation allows Spark to assess all the transformations and assemble an efficient physical execution plan.
@@ -66,7 +75,7 @@ _Source: [Spark Docs](https://spark.apache.org/docs/latest/rdd-programming-guide
     * Actions to collect data to native objects in the respective language
     * Actions to write to output data sources  
 
-_Source: [Spark Docs](https://spark.apache.org/docs/latest/rdd-programming-guide.html#rdd-operations)_ 
+_Source: [Spark RDD Operations](https://spark.apache.org/docs/latest/rdd-programming-guide.html#rdd-operations)_ 
 
 #### Wide vs. Narrow Transformations
 * Narrow Transformations: Transformations where each input partition will contribute to only one output partition. With narrow partitions, Spark can employ _pipelining_, where everything is performed in-memory (and is therefore quite fast). Narrow transformations include map and filter functions.
@@ -87,6 +96,13 @@ MEMORY_AND_DISK | Store RDD as deserialized Java objects in the JVM. If the RDD 
 DISK_ONLY | Store the RDD partitions only on disk. | Use sparingly, since recomputing a partition may be as fast as reading from disk.  
 
 _Source: [Spark Docs](https://spark.apache.org/docs/latest/rdd-programming-guide.html#rdd-persistence)_
+
+### Garbage Collection Tuning
+Spark employs JVM garbage collection, the cost of which is proportional to the number of Java objects. To reduce the overhead, try:
+1. Using data structures with fewer objects
+2. Persist objects in serialized form. You can do this without spilling to disk using the `MEMORY_ONLY_SER` option.
+  
+_Source: [Spark Garbage Collection Tuning](https://spark.apache.org/docs/latest/tuning.html#garbage-collection-tuning)_, SDG (Ch 19. Performance Tuning)
 
 ## SparkContext
 
@@ -190,7 +206,7 @@ _Source: [pyspark.sql.DataFrameWriter](https://spark.apache.org/docs/2.1.0/api/p
 Once you have a DataFrame, you are able to operate on it. These DataFrame _operations_ can be grouped into two categories: actions and transformations. For further detail on DataFrame methods, reference [pyspark.sql.DataFrame](https://spark.apache.org/docs/2.1.0/api/python/pyspark.sql.html#pyspark.sql.DataFrame) as well as SDG Ch 5: Basic Strutured Opeartions.  
 
 ### Common DataFrame Actions  
-Collecting Rows to the driver: `.collect()` gets all the data from the entire DataFrame, `.take()` selects the first N rows, and `.show()` prints out a number of rows nicely. Be careful - a large collection can crash the driver!
+Collecting Rows to the driver: `.collect()` gets all the data from the entire DataFrame, `.take()` selects the first N rows, and `.show()` prints out a number of rows nicely. Be careful - a large collection can crash the driver.
 ```python
 collectDF = df.limit(10) # to prevent collect from crashing driver
 collectDF.take(5)
@@ -217,7 +233,7 @@ df = duplicateDF.drop_duplicates(['id', 'favorite_color']) # same
 ```
 
 #### Filtering Rows
-We can either provide an expression as a string or build an expression using column manipulations. Both `.filter()` and `.where()` perform exactly the same. 
+To filter rows, we need to create an expression that evaluates to true or false. We can either provide an expression as a string or build an expression using column manipulations. Both `.filter()` and `.where()` perform exactly the same. 
 ```python
 from pyspark.sql.functions import col
 
@@ -239,18 +255,35 @@ from pyspark.sql.function import asc, desc
 df.orderBy(col('count').desc(), col('myColumn').asc()).show(2)
 df.sort(desc(col('count')), asc(col('myColumn'))).show(2) # same
 
-# add example with proper null handling
+# Same, but with nulls at top
+df.sort(desc_nulls_first(col('count')), asc(col('myColumn'))).show(2)
 ``` 
   
 #### Unions & Joins
-Use the `.union()` DataFrame method to concatenate two DataFrames. FYI - Unions are based on location, not schema.
+Use the `.union()` DataFrame method to concatenate two DataFrames that share the same schema. 
+
+The following join types are supported by Spark:
+* inner: keep data where keys appear in both
+* outer: keep everything
+* left outer: keep data where keys appear in left
+* right outer: keep data where keys appear in right
+* left semi: keep data from left where keys appear in right
+* left anti: keep data from left where keys do not appear in right
+* natural: implicitly match columns between two with same names
+* cross / cartesian: every row in left with every row in right. Be careful with this one.
+
 ```python
 # Union df1 & df2
 newDF = df1.union(df2)
 
-# Join
+# Inner join is default
+joinDF = df1.join(df2, df1.col1 == df2.col2)
+
+# Otherwise, specify join type explicitlys
+joinDF = df1.join(df2, df1.col1 == df2.col2, "left_anti")
 
 ```
+The relative size of the DataFrames will determine how Spark carries out the join. If one of the tables is small enough to fit within the memory of a single worker node, Spark will perform an optimized _broadcast join_, where it sends a copy of that smaller DF to every node with the larger DataFrame. If both DataFrames are large, Spark will resort to a _shuffle_ during the join process. Joins are given an entire chapter (Chapter 8) in SDG.
 
 #### Split & Sample
 Machine learning applications often require you to break up your DataFrame into train/test sets. You can easily perform this operation by supplying the proportion for the split. More generally, you can sample rows in the DataFrame by specifying the percentage and whether you want it to be sampled with or without replacement.
@@ -273,7 +306,7 @@ df_dropna = df.dropna(['temperature', 'wind'])
 ```
 
 #### Persisting / Caching Data  
-Spark allows us to cache data in Spark to memory, disk, or both. We can also _unpersist_ data as well.
+Spark allows us to persist/cache data in Spark to memory, disk, or both. We can also _unpersist_ data as well. Calling the `.cache()` method will automatically use teh default storage level, while `.persist()` lets you specify the type (refer to table above for different types).
 ```python
 from pyspark.storagelevel import StorageLevel
 
@@ -299,9 +332,14 @@ df = df.repartition(10)
 ```  
 
 #### Convert a DataFrame to Gobal/Temp View
-If we want to work with our DF using SQL, we first need to create a Temporary View using the following command:
+If we want to work with our DF using SQL, we first need to create a Temporary View. We can then manipulate the DataFrame directly using SQL and save it to a new DataFrame.
 ```python
-df.createOrReplaceTempView('DF')
+# First, create Temp View
+df.createOrReplaceTempView('mySQLDF')
+
+# Execute SQL using the Temp View reference
+sql = "SELECT * FROM mySQLDF WHERE myCol > 2"
+new_df = spark.sql(sql)
 ```
 
 ## Row & Column
@@ -320,23 +358,26 @@ df.col('columnName') # Explicit referencing using DF method
 # New Col: First arg is new column name, Second arg is calculated value
 newDF = df.withColumn('col2', 'col1' + 5)
 
-# Drop column using .drop() method
+# Drop column(s) using .drop() method. Pass multiple strings for multiple columns
 newDF = df.drop('col2', 'col3', 'col5')
 
-# Cast column to a different type
-
+# Cast column to a different type using .cast()
+newDF = df.withColumn('col2', col('col1').cast('long'))
 
 # Renamed Col: first arg is old column name, second arg is new column name
-newDF = df.withColumnRenamed('col2', 'column_plus_five')
+newDF = df.withColumnRenamed('col2', 'colPlusFive')
 ```  
 #### Expressions
-At the core level, a column is really an expression, which is a set of transformations on one or more values in a record on a dataframe. For example, `expr('columnName')` is equal to `col('columnName')`. We can use the `expr()` function to parse strings to apply additional transformations to a column.
+At the core level, a column is really an expression, which is a set of transformations on one or more values in a record on a dataframe. For example, `expr('columnName')` is equal to `col('columnName')`. We can use the `expr()` function to parse strings to apply additional transformations to a column. A common error during the `.select()` method is to mix column objects and strings.
 ```python
 from pyspark.sql.functions import col, expr
 
 col('columnName') - 5
 expr('columnName - 5') # Same as above
 expr('`column Name` - 5') # use backtick(`) for expressions referring to column names w/ spaces
+
+# This will result in an error
+newDF = df.select('col1', col('col2'))
 ```
 ### Working with Rows/Records 
 ```python
@@ -366,26 +407,84 @@ df.select(lit(1).alias('One')).show()
 ```
 
 #### String Functions  
-Change the character case
-```
-from pyspark.sql.functions import lower
-
-df = df.withColumn('lowerCol', lower(col('col')))
-```
-Replace characters within a string
-```
+```python
+from pyspark.sql.functions import lower, concat
 from pyspark.sql.functions import regexp_replace
+
+# Add new column w/ all lowercase
+df = df.withColumn('lowerCol', lower(col('col')))
 
 # This will replace all instances of ":" with "_"
 regexp_replace(col("newCol"), ":", "_")
 
-```
-Concatenate strings
-```
-from pyspark.sql.functions import concat
-
+# Concatenate two string cols into a new col
 newDF = df.withColumn('concatcol', concat(col('col1'), col('col2')))
-```  
+
+```
+
+#### Array Functions
+Spark has several functions that are designed specifically to work with columns containing arrays.
+```python
+from pyspark.sql.functions import col, array_contains, array_distinct, array_except, lit, array, array_intersect, array_join, array_union, array_sort, arrays_zip
+
+# DF with single col 'data' and two rows, each with an array
+start_df = spark.createDataFrame([(['1','2','3'],),
+                                 (['4','4','6'],)],
+                                 ['data'])
+
+# array_contains: Return T/F if array contains value
+a_cont_df = start_df.withColumn('contains', array_contains('data', '1'))
+
+# array_distinct: Return array of distinct values
+a_dist_df = start_df.withColumn('unique', array_distinct('data'))
+
+# array_except: Return array of items in col1 not in col2
+a_except_df = a_dist_df\
+  .withColumn('2', array(lit('2'), lit('2')))\
+  .withColumn('except', array_except('data', '2'))
+
+# array_intersect: Return array of items appearing in both arrays
+a_int_df = a_except_df.withColumn('int', array_intersect('data', '2'))
+
+# array join
+a_j_df = a_int_df.withColumn('join', array_join('data', ''))
+
+# array_union: Returns array of items appearing in either array
+a_u_df = a_int_df.withColumn('union', array_union('2', 'except'))
+
+# array_sort: Returns a sorted array
+a_sort_df = a_u_df.withColumn('u_sorted', array_sort('union'))
+
+# arrays_zip: "zip" up elements from two different arrays
+a_zip_df = a_sort_df.withColumn('zip', arrays_zip('2', 'except'))
+
+```
+
+#### Date Functions
+```python
+from pyspark.sql.functions import current_date, current_timestamp, dayofmonth, datediff, date_trunc, date_format, dayofweek, dayofyear
+
+df = spark.createDataFrame([('2014-04-01',),('2015-05-13',)],['dt'])
+
+# Add current_date, current_timestamp
+curr_df = df\
+  .withColumn('current_dt', current_date())\
+  .withColumn('current_tmstmp', current_timestamp())
+
+# Extract dayofyear, dayofmonth, dayofweek
+do_df = curr_df\
+  .withColumn('doy', dayofyear('current_dt'))\
+  .withColumn('dom', dayofmonth('current_dt'))\
+  .withColumn('dow', dayofweek('current_dt'))
+
+# datediff: Calculate the difference between 2 dates
+dtdff_df = curr_df.withColumn('datediff', datediff('current_dt', 'dt'))
+
+# Truncate a date
+dt_trunc_df = tmstmp_df\
+  .withColumn('trunc', date_trunc('yy','current_tmstmp'))\
+  .withColumn('trunc_fmt', date_format('trunc', 'yyyy'))
+```
 
 #### Math Functions
 ```python
@@ -402,16 +501,16 @@ cosVal = cos(0) # 1.0
 from pyspark.sql.functions import sha1, sha2, md5, crc32
 
 # CRC32 returns a cyclic redundancy check value as bigint
-newDF = df.withColumn('hash', crc32('mycol'))
+newDF = df.withColumn('hash', crc32('col1'))
 
 # MD5 returns 128-bit checksum as hex string
-newDF = df.withColumn('hash', md5('mycol'))
+newDF = df.withColumn('hash', md5('col1'))
 
 # SHA-1
-newDF = df.withColumn('hash', sha1('mycol'))
+newDF = df.withColumn('hash', sha1('col1'))
 
 # SHA-2 returns checksum of SHA-2 family. Supports SHA-224, SHA-256, SHA-384, and SHA-512
-newDF = df.withColumn('hash', sha2('mycol', 256))
+newDF = df.withColumn('hash', sha2('col1', 256))
 
 
 ```
@@ -423,10 +522,10 @@ As in SQL, we can perform calculations across a window of rows.
 ```python
 from pyspark.sql.window import Window
 
-windowSpec = Window.partititonBy('col')
+windowSpec = Window.partititonBy('col1')
 
 win_df = df\
-  .withColumn('windowCol', avg('someCol').over(windowSpec))
+  .withColumn('windowCol', avg('col2').over(windowSpec))
 ```
 _Source: [pyspark.sql.Window](https://spark.apache.org/docs/2.1.0/api/python/pyspark.sql.html#pyspark.sql.Window)_
 
